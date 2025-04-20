@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  password     String
+  role         Role
+  assignedTasks Task[]     @relation("UserAssignedTasks")
+  createdTasks  Task[]     @relation("CreatedTasks")
+  changeLogs    TaskLog[]  @relation("UserChangeLogs") 
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  status      Status   @default(NOT_STARTED)
+  assignedUsers User[]   @relation("UserAssignedTasks")
+  createdBy    User     @relation("CreatedTasks", fields: [createdById], references: [id])
+  createdById  String
+  logs        TaskLog[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model TaskLog {
+  id        String   @id @default(uuid())
+  task      Task     @relation(fields: [taskId], references: [id])
+  taskId    String
+  action    String
+  oldValue  String?
+  newValue  String?
+  changedBy User     @relation("UserChangeLogs", fields: [changedById], references: [id])
+  changedById String
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  LEAD
+  TEAM
+}
+
+enum Status {
+  NOT_STARTED
+  ON_PROGRESS
+  DONE
+  REJECT
+}
