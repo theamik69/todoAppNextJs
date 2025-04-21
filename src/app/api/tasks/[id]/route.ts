@@ -3,17 +3,18 @@ import { prisma } from '../../../../../lib/prisma'
 import { verifyJwt } from '../../../../../lib/jwt'
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+
   const token = req.headers.get('authorization')?.split(' ')[1]
   const user = verifyJwt(token || '')
-
+  
   if (!user || user.role !== 'LEAD') {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 403 })
   }
-
+  
   const param = await params;
-
-  const { title, description, assignedUserIds } = await req.json()
-
+  
+  const { title, description, assignedUserIds, status } = await req.json()
+  
   const existing = await prisma.task.findUnique({
     where: { id: param.id },
     include: { assignedUsers: true }
@@ -32,12 +33,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     data: {
       title,
       description,
+      status,
       assignedUsers: {
-        connect: cleanedAssignedUserIds.map((id) => ({ id })),
+        set: cleanedAssignedUserIds.map((id) => ({ id })),
       },
     },
     include: { assignedUsers: true }
-  })
+  }) 
 
   await prisma.taskLog.create({
     data: {

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
@@ -37,11 +39,11 @@ export default function LoginForm() {
   return (
     <form
       onSubmit={handleLogin}
-      className="flex flex-col gap-3 bg-white p-8 w-full max-w-md rounded-2xl shadow-lg"
+      className="flex flex-col gap-4 bg-white/80 backdrop-blur-md p-8 w-full max-w-md rounded-3xl shadow-2xl border border-gray-200"
     >
-      <h2 className="text-2xl font-bold text-center">Sign In</h2>
+      <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">Sign In to Your Account</h2>
 
-      {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+      {error && <div className="text-red-500 text-sm text-center font-medium">{error}</div>}
 
       <InputField
         label="Email"
@@ -74,7 +76,7 @@ export default function LoginForm() {
 
       <button
         type="submit"
-        className="bg-black text-white font-medium rounded-xl h-12 mt-4 hover:bg-neutral-800 transition"
+        className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-xl h-12 mt-4 hover:opacity-90 transition-all shadow-md"
       >
         Sign In
       </button>

@@ -6,19 +6,19 @@ const prisma = new PrismaClient();
 async function main() {
     const users = [
         {
-            name: 'Lead User',
+            name: 'Amik',
             email: 'lead@example.com',
             password: 'password123',
             role: Role.LEAD, 
         },
         {
-            name: 'Team User 1',
+            name: 'Ki Agus',
             email: 'team1@example.com',
             password: 'password123',
             role: Role.TEAM,
         },
         {
-            name: 'Team User 2',
+            name: 'Muh Irsyad',
             email: 'team2@example.com',
             password: 'password123',
             role: Role.TEAM,

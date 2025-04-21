@@ -11,6 +11,19 @@ type User = {
   email: string;
 };
 
+type LogEntry = {
+  id: string;
+  taskId: string;
+  action: string;
+  oldValue: string | null;
+  newValue: string | null;
+  createdAt: string;
+  changedBy: {
+    name: string;
+    email: string;
+  };
+};
+
 export type Task = {
   id: string;
   title: string;
@@ -25,6 +38,8 @@ export default function TeamDashboard() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingDesc, setEditingDesc] = useState<{ [id: string]: string }>({});
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -57,6 +72,35 @@ export default function TeamDashboard() {
     fetchTasks();
   }, [token, router]);
 
+  useEffect(() => {
+    const fetchLogsAndUsers = async () => {
+      const token = localStorage.getItem('token');
+      if (!token || tasks.length === 0) return;
+  
+      try {
+        const usersRes = await fetch(`/api/users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const usersData = await usersRes.json();
+        setAllUsers(usersData);
+  
+        const logPromises = tasks.map((task) =>
+          fetch(`/api/tasks/${task.id}/logs`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((res) => res.json())
+        );
+  
+        const logsArray = await Promise.all(logPromises);
+        const mergedLogs = logsArray.flat(); // gabungkan semua log task
+        setLogs(mergedLogs);
+      } catch (err) {
+        console.error('Error fetching logs/users:', err);
+      }
+    };
+  
+    fetchLogsAndUsers();
+  }, [tasks]);
+
   const updateTask = async (
     id: string,
     status: Task['status'],
@@ -81,8 +125,11 @@ export default function TeamDashboard() {
 
     const updated = await res.json();
     setTasks((prev) =>
-      prev.map((t) => (t.id === id ? updated : t))
+      prev.map((t) =>
+        t.id === id ? { ...t, ...updated } : t
+      )
     );
+  
     setEditingDesc((prev) => ({ ...prev, [id]: safeDescription }));
   };
 
@@ -93,19 +140,24 @@ export default function TeamDashboard() {
   if (isLoading) return <Loading />;
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Team Dashboard</h1>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6">
+    <div className="bg-gray-100/60 bg-opacity-80 backdrop-blur-lg rounded-xl p-6 shadow-lg">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Team Dashboard</h1>
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {tasks.map((task) => (
           <TaskCard
             key={task.id}
             task={task}
+            mode="team"
             editingDesc={editingDesc[task.id] ?? task.description}
             onDescriptionChange={handleDescriptionChange}
             onSave={updateTask}
+            logs={logs.filter((log) => log.taskId === task.id)}
+            allUsers={allUsers}
           />
         ))}
       </div>
     </div>
+  </div>
   );
 }

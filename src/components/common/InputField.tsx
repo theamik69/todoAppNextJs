@@ -34,7 +34,7 @@ export default function InputField({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="ml-2 w-full border-none focus:outline-none"
+          className="ml-2 w-full border-none focus:outline-none text-gray-800 placeholder-gray-400"
           required={required}
         />
         {rightElement && <div className="ml-2">{rightElement}</div>}

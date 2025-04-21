@@ -1,4 +1,7 @@
+// 
+
 import { useState, useMemo } from 'react';
+import { X } from 'lucide-react';
 
 type User = {
   id: string;
@@ -7,14 +10,14 @@ type User = {
 };
 
 export default function MultiUserSelect({
-    users,
-    selectedUserIds,
-    setSelectedUserIds,
-  }: {
-    users: User[];
-    selectedUserIds: string[];
-    setSelectedUserIds: React.Dispatch<React.SetStateAction<string[]>>;
-  }) {
+  users,
+  selectedUserIds,
+  setSelectedUserIds,
+}: {
+  users: User[];
+  selectedUserIds: string[];
+  setSelectedUserIds: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
   const [search, setSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -26,29 +29,51 @@ export default function MultiUserSelect({
     );
   }, [search, users]);
 
-  const toggleSelect = (id: string) => {
-    setSelectedUserIds((prev) => {
-      const updatedUserIds = prev.includes(id)
-        ? prev.filter((uid) => uid !== id)
-        : [...prev, id];
-      return updatedUserIds;
-    });
+  const handleSelect = (id: string) => {
+    if (!selectedUserIds.includes(id)) {
+      setSelectedUserIds((prev) => [...prev, id]);
+    }
+    setSearch('');
+    setShowDropdown(false);
+  };
+
+  const handleRemove = (id: string) => {
+    setSelectedUserIds((prev) => prev.filter((uid) => uid !== id));
   };
 
   return (
     <div className="relative">
-      <div
-        className="border border-gray-300 rounded-md p-2 cursor-pointer w-full bg-white"
-        onClick={() => setShowDropdown(!showDropdown)}
-      >
-        {selectedUserIds.length > 0
-          ? users
-              .filter((u) => selectedUserIds.includes(u.id))
-              .map((u) => u.name)
-              .join(', ')
-          : 'Assign to team...'}
+      {/* Selected Users as Cards */}
+      <div className="flex flex-wrap gap-2 mb-2">
+        {selectedUserIds.map((id) => {
+          const user = users.find((u) => u.id === id);
+          if (!user) return null;
+          return (
+            <div
+              key={id}
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 text-blue-800 text-sm"
+            >
+              <span>{user.name}</span>
+              <button
+                onClick={() => handleRemove(id)}
+                className="hover:text-red-600"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          );
+        })}
       </div>
 
+      {/* Trigger Input */}
+      <div
+        className="border border-gray-300 rounded-md p-2 cursor-pointer w-full bg-white"
+        onClick={() => setShowDropdown(true)}
+      >
+        {selectedUserIds.length === 0 ? 'Assign to team...' : 'Add more...'}
+      </div>
+
+      {/* Dropdown */}
       {showDropdown && (
         <div className="absolute z-10 mt-2 w-full max-h-60 overflow-auto bg-white border border-gray-300 rounded-md shadow">
           <input
@@ -61,18 +86,14 @@ export default function MultiUserSelect({
           <ul>
             {filteredUsers.map((user) => (
               <li
-              key={user.id}
-              onClick={() => {
-                console.log('User clicked:', user.id);  
-                toggleSelect(user.id);
-              }}
-              className={`p-2 cursor-pointer hover:bg-blue-50 ${
-                selectedUserIds.includes(user.id) ? 'bg-blue-100 font-medium' : ''
-              }`}
-            >
-              {user.name} ({user.email})
-            </li>
-            
+                key={user.id}
+                onClick={() => handleSelect(user.id)}
+                className={`p-2 cursor-pointer hover:bg-blue-50 ${
+                  selectedUserIds.includes(user.id) ? 'bg-blue-100 font-medium' : ''
+                }`}
+              >
+                {user.name} ({user.email})
+              </li>
             ))}
           </ul>
         </div>
